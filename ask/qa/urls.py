@@ -9,6 +9,6 @@ urlpatterns = [
     path('question/<int:id>/', question, name='question'),
     path('ask/', ask, name='ask'),
     path('popular/', popular, name='popular'),
-    path('new/', popular, name='new')
+    path('new/', new, name='new')
 ]
 
