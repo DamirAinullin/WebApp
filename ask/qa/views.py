@@ -56,6 +56,7 @@ def signup(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
+            request.session["sessionid"] = str(uuid.uuid4())
             return HttpResponseRedirect("/")
     else:
         form = RegisterForm()
