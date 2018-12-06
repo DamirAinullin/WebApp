@@ -14,6 +14,8 @@ cp edinorogs/gunicorn-debian /usr/sbin/
 cp edinorogs/gunicorn /usr/bin/
 cp edinorogs/gunicorn_* /usr/bin/
 
+chmod 777 ask/qa/db.sqlite3
+
 #mysql -uroot -e "create database ask CHARACTER SET utf8;"
 #mysql -uroot -e  "create user 'django'@'localhost' identified by 'django-user-password';"
 #mysql -uroot -e  "grant usage on *.* to 'django'@'localhost';"

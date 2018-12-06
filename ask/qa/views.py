@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
-from django.views.decorators.http import require_GET
+from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.views.decorators.http import require_GET, require_http_methods
 from django.core.paginator import Paginator, EmptyPage
 from .models import Question, Answer
-
+from .forms import AskForm, AnswerForm
 
 @require_GET
 def test(request, *args, **kwargs):
@@ -42,7 +42,7 @@ def signup(request, *args, **kwargs):
     return HttpResponse('signup')
 
 
-@require_GET
+@require_http_methods(["GET", "POST"])
 def question(request, *args, **kwargs):
     try:
         id = int(kwargs["id"])
@@ -50,16 +50,30 @@ def question(request, *args, **kwargs):
         raise Http404
 
     quest = get_object_or_404(Question, pk=id)
-
+    if request.method == "POST":
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(quest.get_absolute_url())
+    else:
+        form = AnswerForm()
     return render(request, "question.html", {
+        "form": form,
         "question": quest,
         "answers": Answer.objects.filter(question=quest.pk)
     })
 
 
-@require_GET
+@require_http_methods(["GET", "POST"])
 def ask(request, *args, **kwargs):
-    return HttpResponse('ask')
+    if request.method == "POST":
+        form = AskForm(request.POST)
+        if form.is_valid():
+            quest = form.save()
+            return HttpResponseRedirect(quest.get_absolute_url())
+    else:
+        form = AskForm()
+    return render(request, "ask.html", {"form": form})
 
 
 @require_GET

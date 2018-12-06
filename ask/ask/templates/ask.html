@@ -1,22 +1,12 @@
 {% extends "base.html" %}
 {% block title %}
-    {{block.super}} - Question
+    {{block.super}} - Ask
 {% endblock %}
 {% block content %}
-    <br />
-    <h3>{{question.title}}</h3>
-    <br />
-    <p>{{question.text}}</p>
-    <br />
-    <h4>Answers</h4>
-    <br />
-    {% for answer in answers %}
-        <p>{{answer.text}}</p>
-    {% endfor %}
     {% for e in form.non_field_errors %}
         <div class="alert alert-danger">{{ e }}</div>
     {% endfor %}
-    <form class="form-horizontal" method="post" action="">
+    <form class="form-horizontal" method="post" action="/ask/">
         <fieldset>
             {% for field in form %}
                 <div class="control-group
