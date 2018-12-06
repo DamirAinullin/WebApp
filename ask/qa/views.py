@@ -2,11 +2,13 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.views.decorators.http import require_GET, require_http_methods
 from django.core.paginator import Paginator, EmptyPage
+import uuid
 from .models import Question, Answer
-from .forms import AskForm, AnswerForm
+from .forms import AskForm, AnswerForm, LoginForm, RegisterForm
+
 
 @require_GET
-def test(request, *args, **kwargs):
+def test(request):
     return HttpResponse('OK')
 
 
@@ -32,14 +34,34 @@ def index(request):
     })
 
 
-@require_GET
-def login(request, *args, **kwargs):
-    return HttpResponse('login')
+@require_http_methods(["GET", "POST"])
+def login(request):
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            if user is not None:
+                request.session["sessionid"] = str(uuid.uuid4())
+                return HttpResponseRedirect("/")
+    else:
+        form = LoginForm()
+    return render(request, "login.html", {
+        "form": form
+    })
 
 
-@require_GET
-def signup(request, *args, **kwargs):
-    return HttpResponse('signup')
+@require_http_methods(["GET", "POST"])
+def signup(request):
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect("/")
+    else:
+        form = RegisterForm()
+    return render(request, "signup.html", {
+        "form": form
+    })
 
 
 @require_http_methods(["GET", "POST"])
@@ -52,6 +74,7 @@ def question(request, *args, **kwargs):
     quest = get_object_or_404(Question, pk=id)
     if request.method == "POST":
         form = AnswerForm(request.POST)
+        form.user = request.user
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(quest.get_absolute_url())
@@ -65,9 +88,10 @@ def question(request, *args, **kwargs):
 
 
 @require_http_methods(["GET", "POST"])
-def ask(request, *args, **kwargs):
+def ask(request):
     if request.method == "POST":
         form = AskForm(request.POST)
+        form.user = request.user
         if form.is_valid():
             quest = form.save()
             return HttpResponseRedirect(quest.get_absolute_url())
@@ -99,6 +123,5 @@ def popular(request):
 
 
 @require_GET
-def new(request, *args, **kwargs):
+def new(request):
     return HttpResponse('new')
-

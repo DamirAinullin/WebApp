@@ -1,5 +1,8 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from _datetime import datetime
+import re
 from .models import Question, Answer
 
 
@@ -23,7 +26,7 @@ class AskForm(forms.Form):
         question = Question(**self.cleaned_data)
         question.date_added = datetime.now()
         question.rating = 1
-        question.author_id = 2
+        question.author = self.user
         question.save()
         return question
 
@@ -53,6 +56,56 @@ class AnswerForm(forms.Form):
         answer.date_added = datetime.now()
         answer.text = self.cleaned_data["text"]
         answer.question_id = self.cleaned_data["question"]
-        answer.author_id = 2
+        answer.author_id = self.user
         answer.save()
         return answer
+
+
+class RegisterForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    email = forms.EmailField(max_length=254)
+    password = forms.CharField(max_length=128, widget=forms.PasswordInput())
+
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        if username == "" or username is None or len(username) < 4:
+            raise forms.ValidationError("username %s is not allowed" % username)
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if email == "" or email is None or \
+                re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email) is None:
+            raise forms.ValidationError("email %s is not allowed" % email)
+        return email
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if password == "" or password is None or len(password) < 4:
+            raise forms.ValidationError("such password is not allowed")
+        return password
+
+    def save(self):
+        return User.objects.create_user(self.cleaned_data["username"],
+                                        self.cleaned_data["email"],
+                                        self.cleaned_data["password"])
+
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(max_length=128, widget=forms.PasswordInput())
+
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        if username == "" or username is None or len(username) < 4:
+            raise forms.ValidationError("username or password is not correct")
+        return username
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if password == "" or password is None or len(password) < 4:
+            raise forms.ValidationError("username or password is not correct")
+        return password
+
+    def save(self):
+        return authenticate(username=self.cleaned_data["username"], password=self.cleaned_data["password"])
