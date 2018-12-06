@@ -56,7 +56,7 @@ class AnswerForm(forms.Form):
         answer.date_added = datetime.now()
         answer.text = self.cleaned_data["text"]
         answer.question_id = self.cleaned_data["question"]
-        answer.author_id = self.user
+        answer.author = self.user
         answer.save()
         return answer
 
@@ -86,9 +86,11 @@ class RegisterForm(forms.Form):
         return password
 
     def save(self):
-        return User.objects.create_user(self.cleaned_data["username"],
-                                        self.cleaned_data["email"],
-                                        self.cleaned_data["password"])
+        User.objects.create_user(self.cleaned_data["username"],
+                                 self.cleaned_data["email"],
+                                 self.cleaned_data["password"])
+
+        return authenticate(username=self.cleaned_data["username"], password=self.cleaned_data["password"])
 
 
 class LoginForm(forms.Form):

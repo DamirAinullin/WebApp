@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.views.decorators.http import require_GET, require_http_methods
 from django.core.paginator import Paginator, EmptyPage
+from django.contrib import auth
 import uuid
 from .models import Question, Answer
 from .forms import AskForm, AnswerForm, LoginForm, RegisterForm
@@ -42,6 +43,7 @@ def login(request):
             user = form.save()
             if user is not None:
                 request.session["sessionid"] = str(uuid.uuid4())
+                auth.login(request, user)
                 return HttpResponseRedirect("/")
     else:
         form = LoginForm()
@@ -55,8 +57,9 @@ def signup(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             request.session["sessionid"] = str(uuid.uuid4())
+            auth.login(request, user)
             return HttpResponseRedirect("/")
     else:
         form = RegisterForm()
